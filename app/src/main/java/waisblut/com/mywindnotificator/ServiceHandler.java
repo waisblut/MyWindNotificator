@@ -1,5 +1,5 @@
 package waisblut.com.mywindnotificator;
 
-public class ServerHandler {
+public class ServiceHandler {
 
 }
