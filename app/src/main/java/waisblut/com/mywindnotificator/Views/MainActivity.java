@@ -14,10 +14,10 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import waisblut.com.mywindnotificator.HttpRequest;
 import waisblut.com.mywindnotificator.R;
 
 public class MainActivity extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        new ReadWeatherJSONFeedTask<Void, Void, String>().execute();
+
     }
 
     @Override
@@ -55,5 +58,67 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    private class ReadWeatherJSONFeedTask<V, V1, S> extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... urls) {
+            String response;
+
+            try {
+                response = new HttpRequest("http://api.openweathermap.org/data/2.5/weather?zip=94040,us&appid=bd82977b86bf27fb59a04b61b657fb6f")
+                        .preparePost()
+                        .sendAndReadString();
+
+            } catch (Exception e) {
+                response = e.getMessage();
+            }
+
+
+//            try {
+//                URL url = new URL(urls[0]);
+//                HttpRequest request = new HttpRequest("http://api.openweathermap.org/data/2.5/weather");
+//
+//                //Opcao 1
+//                request.preparePost().withData("zip=94040,us&appid=bd82977b86bf27fb59a04b61b657fb6f").send();
+//
+//                //Opcao 2
+//                request.prepare().sendAndReadString();
+//
+//                //Opcao 3
+//                HashMap<String, String> params = new HashMap<>();
+//                params.put("zip", "94040,us");
+//                params.put("appid", "bd82977b86bf27fb59a04b61b657fb6f");
+//                request.preparePost().sendAndReadJSON();
+//
+//
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+
+
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            try {
+                JSONObject jsonObject = new JSONObject(result);
+                JSONObject weatherObservationItems = new JSONObject(jsonObject.getString("weatherObservation"));
+
+                Toast.makeText(getBaseContext(), weatherObservationItems.getString("clouds") +
+                                " - " + weatherObservationItems.getString("stationName"),
+                        Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.d("ReadWeatherJSONFeedTask", e.getLocalizedMessage());
+            }
+            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+            //super.onPostExecute(result);
+        }
     }
 }
